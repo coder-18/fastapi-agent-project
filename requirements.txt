@@ -1,0 +1,11 @@
+ipykernel
+fastapi
+langchain-openai
+langchain
+langchain-community 
+openai
+uvicorn
+requests
+python-dotenv
+pytest
+pytest-mock

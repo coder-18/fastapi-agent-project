@@ -1,0 +1,41 @@
+name: CI Pipeline
+
+on:
+  # Triggers the workflow on pull requests to the main branch
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Python
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8
+
+      # Step 4: Run Linter (flake8)
+      - name: Run flake8 linter
+        run: |
+          flake8 app/ tests/
+        # Prevents the workflow from failing when there are no files
+        continue-on-error: false
+
+      # Step 5: Run Unit Tests (pytest)
+      - name: Run pytest
+        run: |
+          pytest --maxfail=1 --disable-warnings

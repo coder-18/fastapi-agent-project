@@ -5,7 +5,7 @@ from langchain_openai import OpenAI
 from app.tools import get_weather
 from app.logger import logger
 
-# Load environment variables from the .env file
+# Load environment variables from the .env file 
 load_dotenv()
 
 # Function to load the OpenAI API key

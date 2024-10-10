@@ -1,5 +1,6 @@
 import yaml
 
+
 def load_config(config_file):
     """
     Generic function to load configuration from a YAML file.
@@ -8,7 +9,8 @@ def load_config(config_file):
         config_file (str): Path to the YAML configuration file.
 
     Returns:
-        dict: Parsed configuration data from the YAML file, or None if an error occurs.
+        dict: Parsed configuration data from the YAML file,
+        or None if an error occurs.
     """
     try:
         with open(config_file, "r") as file:

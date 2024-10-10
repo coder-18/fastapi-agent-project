@@ -100,4 +100,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 If you have any questions or issues, feel free to contact me:
 
 GitHub: coder-18 \
-Email: sendittomohnish@gmail.com \
+Email: sendittomohnish@gmail.com

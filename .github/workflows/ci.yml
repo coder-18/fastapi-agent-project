@@ -1,44 +1,80 @@
-name: CI Pipeline
+name: CI Pipeline and Deploy to AWS Fargate
 
+# Triggers the workflow on push or pull request to the main branch
 on:
-  # Triggers the workflow on pull requests to the main branch
-  pull_request:
+  push:
     branches:
       - main
-  push:
+  pull_request:
     branches:
       - main
 
 jobs:
-  test:
+  # Job 1: Build and Test (CI process)
+  build_and_test:
+    name: Build and Test
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check out the repository code
+      # Step 1: Checkout the repository code
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Set up Python
-      - name: Set up Python 3.10
+      # Step 2: Set up Python environment (modify this if you're using a different language)
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.10'
+          python-version: '3.10'  # Modify based on your project requirements
 
-      # Step 3: Install dependencies
+      # Step 3: Install dependencies (adjust the command if you're using another package manager)
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flake8
 
-      # Step 4: Run Linter (flake8)
-      - name: Run flake8 linter
+      # Step 4: Run unit tests (modify based on your test suite)
+      - name: Run tests
         run: |
-          flake8 app/ tests/
-        # Prevents the workflow from failing when there are no files
-        continue-on-error: false
+          pytest
 
-      # Step 5: Run Unit Tests (pytest)
-      - name: Run pytest
+  # Job 2: Deploy to AWS Fargate
+  deploy:
+    name: Deploy to AWS Fargate
+    needs: build_and_test  # Only run this if build_and_test passes
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up AWS CLI (with credentials stored in GitHub Secrets)
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Step 3: Log in to Amazon ECR
+      - name: Log in to Amazon ECR
         run: |
-          pytest --maxfail=1 --disable-warnings
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin <aws-account-id>.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+      # Step 4: Build the Docker image
+      - name: Build Docker Image
+        run: |
+          docker build -t my-fastapi-agent-app .
+          docker tag my-fastapi-agent-app:latest 303946385284.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/fastapi-agent-app:latest
+
+      # Step 5: Push the Docker image to ECR
+      - name: Push Docker Image to ECR
+        run: |
+          docker push 303946385284.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/fastapi-agent-app:latest
+
+      # Step 6: Update ECS Service to use the new image
+      - name: Update ECS Service
+        run: |
+          aws ecs update-service \
+            --cluster fastapi-agent-cluster \
+            --service fastapi-agent-app \
+            --force-new-deployment

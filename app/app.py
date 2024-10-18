@@ -9,7 +9,7 @@ agent = get_agent()
 
 @app.get("/")
 def root():
-    return {"message": "LangChain API is running!"}
+    return {"message": "LangChain API is running with CICD!"}
 
 
 @app.get("/ask")
